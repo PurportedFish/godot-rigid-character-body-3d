@@ -3,20 +3,19 @@
 [ext_resource type="Script" uid="uid://327b5a8qf32e" path="res://example/example_player.gd" id="1_3dmge"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_uwhgk"]
-radius = 0.3
-height = 1.7
 
 [node name="ExamplePlayer" type="RigidBody3D"]
 script = ExtResource("1_3dmge")
 metadata/_custom_type_script = "uid://djdfidip0o045"
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 shape = SubResource("CapsuleShape3D_uwhgk")
 
 [node name="Body" type="Node3D" parent="."]
 
 [node name="Head" type="Node3D" parent="Body"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
 
 [node name="Camera3D" type="Camera3D" parent="Body/Head"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 4)

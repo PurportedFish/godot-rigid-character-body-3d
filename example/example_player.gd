@@ -2,6 +2,7 @@ extends RigidCharacterBody3D
 
 
 const SPEED: float = 5.0
+const JUMP_HEIGHT: float = 1.1
 
 @onready var body: Node3D = $Body
 @onready var head: Node3D = $Body/Head
@@ -18,11 +19,12 @@ func _physics_process(_delta: float) -> void:
 	var direction: Vector3 = (body.basis * Vector3(input_dir.x, 0.0, input_dir.y)).normalized()
 	
 	if direction:
-		linear_damp = 0.0
 		target_velocity.x = SPEED * direction.x
 		target_velocity.z = SPEED * direction.z
 	else:
-		linear_damp = 10.0
+		if is_on_floor():
+			linear_velocity.x *= 0.9
+			linear_velocity.z *= 0.9
 		target_velocity.x = 0.0
 		target_velocity.z = 0.0
 	
@@ -34,3 +36,6 @@ func _input(event: InputEvent) -> void:
 		body.rotate_y(-deg_to_rad(event.relative.x * 0.08))
 		head.rotate_x(-deg_to_rad(event.relative.y * 0.08))
 		head.rotation.x = clampf(head.rotation.x, deg_to_rad(-90), deg_to_rad(90))
+	
+	if event.is_action_pressed("ui_accept") and is_on_floor():
+		apply_central_impulse(mass * sqrt(2.0 * get_gravity().length() * JUMP_HEIGHT) * up_direction)
