@@ -1,10 +1,11 @@
-[gd_scene load_steps=32 format=3 uid="uid://6gdtd2bbkm3p"]
+[gd_scene load_steps=33 format=3 uid="uid://6gdtd2bbkm3p"]
 
 [ext_resource type="Texture2D" uid="uid://bqyigsiuqa4hx" path="res://assets/kenney prototype textures/Vector/texture_02.svg" id="1_2s6lt"]
 [ext_resource type="PhysicsMaterial" uid="uid://cmgn7h5igwbxc" path="res://example/physics materials/ground_physics_material.tres" id="1_b7flg"]
 [ext_resource type="Texture2D" uid="uid://cdqwb1omgj1kr" path="res://assets/kenney prototype textures/PNG/Orange/texture_06.png" id="2_dqhm7"]
 [ext_resource type="PhysicsMaterial" uid="uid://4o2bsgkt74mv" path="res://example/physics materials/box_physics_material.tres" id="3_t1e6r"]
 [ext_resource type="PhysicsMaterial" uid="uid://sa28tanjl68q" path="res://example/physics materials/sphere_physics_material.tres" id="5_jyrt8"]
+[ext_resource type="PackedScene" uid="uid://coc12xbx4l33" path="res://example/example_player.tscn" id="6_t1e6r"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ugae7"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -611,3 +612,5 @@ update_rotation = false
 transform = Transform3D(1, 0, -2.9802287e-08, 0, 1, 0, 2.9802287e-08, 0, 1, 0, 0.75, 0)
 billboard = 1
 text = "50 kg"
+
+[node name="ExamplePlayer" parent="." instance=ExtResource("6_t1e6r")]
