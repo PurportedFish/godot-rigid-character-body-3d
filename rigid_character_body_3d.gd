@@ -8,7 +8,7 @@ extends RigidBody3D
 @export_group("Floor", "floor")
 @export var floor_stop_on_slope: bool = true
 @export var floor_constant_speed: bool = false
-@export var floor_step_height: float = 0.5
+@export var floor_knee_height: float = 0.5
 @export_range(0.0, 180, 1.0, "radians_as_degrees") var floor_max_angle: float = deg_to_rad(45.0)
 
 
@@ -16,6 +16,7 @@ var target_velocity: Vector3 = Vector3.ZERO
 var acceleration_magnitude: float = 10.0
 
 var _state: PhysicsDirectBodyState3D
+var _floor_normal: Vector3 = Vector3.ZERO
 var _is_on_ceiling: bool = false
 var _is_on_floor: bool = false
 var _is_on_wall: bool = false
@@ -34,7 +35,7 @@ func _ready() -> void:
 
 
 func move_and_slide() -> void:
-	var floor_normal: Vector3 = _detect_ceiling_floor_wall()
+	_detect_ceiling_floor_wall()
 	
 	if not target_velocity:
 		return
@@ -43,11 +44,12 @@ func move_and_slide() -> void:
 	var move_force: Vector3 = move_magnitude * target_velocity.normalized()
 	
 	if is_on_floor():
-		if not floor_constant_speed and  target_velocity.normalized().dot(floor_normal) < -0.1:
-			move_force *= clampf(floor_normal.dot(up_direction), -1.0, 1.0)
+		if not floor_constant_speed and target_velocity.normalized().dot(_floor_normal) < -0.1:
+			move_force *= clampf(_floor_normal.dot(up_direction), -1.0, 1.0)
 	
-	var drag_scale: float = linear_velocity.length() / target_velocity.length()
-	var drag_force: Vector3 = move_magnitude * drag_scale * -Vector3(linear_velocity.x, 0.0, linear_velocity.z).normalized()
+	var horizontal_velocity: Vector3 = Vector3(linear_velocity.x, 0.0, linear_velocity.z)
+	var drag_scale: float = horizontal_velocity.length() / target_velocity.length()
+	var drag_force: Vector3 = move_magnitude * drag_scale * -horizontal_velocity.normalized()
 	
 	apply_force(move_force + drag_force)
 
@@ -73,11 +75,11 @@ func is_on_wall() -> bool:
 
 
 func is_on_wall_only() -> bool:
-	return _is_on_wall and not (_is_on_ceiling or _is_on_wall)
+	return _is_on_wall and not (_is_on_ceiling or _is_on_floor)
 
 
-func _detect_ceiling_floor_wall() -> Vector3:
-	var highest_floor_normal: Vector3 = Vector3.ZERO
+func _detect_ceiling_floor_wall() -> void:
+	_floor_normal = Vector3.ZERO
 	_state = PhysicsServer3D.body_get_direct_state(get_rid())
 	
 	_is_on_ceiling = false
@@ -90,7 +92,7 @@ func _detect_ceiling_floor_wall() -> Vector3:
 		var contact_angle: float = acos(normal.dot(up_direction))
 		
 		if (
-			contact_position.y > floor_step_height 
+			contact_position.y > floor_knee_height 
 			and contact_position.y < neck_height
 			and contact_angle > floor_max_angle
 			and contact_angle < ceiling_min_angle
@@ -114,10 +116,8 @@ func _detect_ceiling_floor_wall() -> Vector3:
 		if not floor_stop_on_slope:
 			continue
 		
-		if normal.y > highest_floor_normal.y:
-			highest_floor_normal = normal
+		if normal.y > _floor_normal.y:
+			_floor_normal = normal
 		
 		if contact_angle <= floor_max_angle or is_equal_approx(contact_angle, floor_max_angle):
 			apply_central_force(-get_gravity().length() * mass * Vector3.DOWN.slide(normal))
-	
-	return highest_floor_normal

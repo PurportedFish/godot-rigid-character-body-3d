@@ -1,7 +1,7 @@
 extends RigidCharacterBody3D
 
 
-const SPEED: float = 5.0
+const SPEED: float = 3.0
 const JUMP_HEIGHT: float = 1.1
 
 @onready var body: Node3D = $Body
@@ -29,6 +29,8 @@ func _physics_process(_delta: float) -> void:
 		target_velocity.z = 0.0
 	
 	move_and_slide()
+	
+	print(Vector3(linear_velocity.x, 0.0, linear_velocity.z).length())
 
 
 func _input(event: InputEvent) -> void:

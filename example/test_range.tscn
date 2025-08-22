@@ -664,5 +664,3 @@ billboard = 1
 text = "50 kg"
 
 [node name="ExamplePlayer" parent="." instance=ExtResource("6_t1e6r")]
-
-[node name="CharacterBody3D" type="CharacterBody3D" parent="."]
