@@ -111,8 +111,6 @@ func _detect_ceiling_floor_wall() -> void:
 			# TODO: Add ceiling behavior
 			continue
 		
-		_is_on_floor = true
-		
 		if not floor_stop_on_slope:
 			continue
 		
@@ -120,4 +118,5 @@ func _detect_ceiling_floor_wall() -> void:
 			_floor_normal = normal
 		
 		if contact_angle <= floor_max_angle or is_equal_approx(contact_angle, floor_max_angle):
+			_is_on_floor = true
 			apply_central_force(-get_gravity().length() * mass * Vector3.DOWN.slide(normal))
