@@ -1,18 +1,44 @@
 class_name RigidCharacterBody3D
 extends RigidBody3D
+## A 3D physics body specialized for characters moved by physics simulation and scripts.
+##
+## [RigidCharacterBody3D] is a [RigidBody3D] intended to be user-controlled. The body
+## is moved by calling [method move_and_slide] after setting the [member acceleration_magnitude] 
+## and [member target_velocity].
 
-
+## Vector pointing upwards, used for slope behavior calculations.
 @export var up_direction: Vector3 = Vector3.UP
+## A vertical position on the body. Collision points above the [member neck_height] is the first
+## requirement to be considered a ceiling collision.
 @export var neck_height: float = 1.5
+## The minimum angle of a collision to be considered a ceiling if the contact position also occurs
+## above [member neck_height].
 @export_range(0.0, 180, 1.0, "radians_as_degrees") var ceiling_min_angle: float = deg_to_rad(105.0)
 @export_group("Floor", "floor")
+## If [code]true[/code], the body will not slide on slopes when calling [method move_and_slide]
+## when the body is standing still. [br][br]
+## If [code]false[/code], the body will slide on floor's slopes when velocity applies a downward force.
 @export var floor_stop_on_slope: bool = true
+## If [code]false[/code] (by default), the body will move faster on downward slopes and slower on upward slopes. [br][br]
+## If [code]true[/code], the body will always move at the same speed on the ground no matter the slope.
 @export var floor_constant_speed: bool = false
+## A vertical position on the body. Collision points below the [member knee_height] is the first
+## requirement to be considered a floor collision.
 @export var floor_knee_height: float = 0.5
+## The maximum angle of a collision to be considered a floor if the contact position also occurs
+## below [member knee_height].
 @export_range(0.0, 180, 1.0, "radians_as_degrees") var floor_max_angle: float = deg_to_rad(45.0)
 
-
+## The target velocity (typically in meters per second) that the body tries to reach. Used and modified
+## during calls to [method move_and_slide].
 var target_velocity: Vector3 = Vector3.ZERO
+## The acceleration used to calculate forces. The higher the acceleration, the faster the body reaches
+## [member target_velocity]. It is important to note that a high acceleration and high target speed
+## results in a high calculated force being applied to the body. Therefore, collisions with heavier objects
+## can result in unrealistic behavior such as a 1 kg [RigidCharacterBody3D] pushing a 100 kg [RigidBody3D].
+## If a high acceleration and speed are intended for the body but with alternative collision behavior,
+## consider modifying [member acceleration_magnitude] in [method _integrate_forces] to detect if any
+## collisions body objects are [RigidBody3D]s and modify the acceleration accordingly.
 var acceleration_magnitude: float = 10.0
 
 var _state: PhysicsDirectBodyState3D
@@ -33,7 +59,7 @@ func _ready() -> void:
 	contact_monitor = true
 	max_contacts_reported = 16
 
-
+## Applies forces the body to reach [member target_velocity].
 func move_and_slide() -> void:
 	_detect_ceiling_floor_wall()
 	
@@ -57,27 +83,39 @@ func move_and_slide() -> void:
 	
 	apply_force(move_force + drag_force)
 
-
+## Returns [code]true[/code] if the body collided with the ceiling on the last call of [method move_and_slide]. 
+## Otherwise, returns [code]false[/code]. The [member neck_height] and [member ceiling_min_angle] are used
+## to determine whether a surface is "ceiling" or not.
 func is_on_ceiling() -> bool:
 	return _is_on_ceiling
 
-
+## Returns [code]true[/code] if the body collided only with the ceiling on the last call of [method move_and_slide]. 
+## Otherwise, returns [code]false[/code]. The [member neck_height] and [member ceiling_min_angle] are used
+## to determine whether a surface is "ceiling" or not.
 func is_on_ceiling_only() -> bool:
 	return _is_on_ceiling and not (_is_on_floor or _is_on_wall)
 
-
+## Returns [code]true[/code] if the body collided with the floor on the last call of [method move_and_slide]. 
+## Otherwise, returns [code]false[/code]. The [member up_direction], [member knee_height] and [member floor_max_angle] are used
+## to determine whether a surface is "floor" or not.
 func is_on_floor() -> bool:
 	return _is_on_floor
 
-
+## Returns [code]true[/code] if the body collided only with the floor on the last call of [method move_and_slide]. 
+## Otherwise, returns [code]false[/code]. The [member up_direction], [member knee_height] and [member floor_max_angle] are used
+## to determine whether a surface is "floor" or not.
 func is_on_floor_only() -> bool:
 	return _is_on_floor and not (_is_on_ceiling or _is_on_wall)
 
-
+## Returns [code]true[/code] if the body collided with the wall on the last call of [method move_and_slide]. 
+## Otherwise, returns [code]false[/code]. The [member knee_height] and [member neck_height] are used
+## to determine whether a surface is "wall" or not.
 func is_on_wall() -> bool:
 	return _is_on_wall
 
-
+## Returns [code]true[/code] if the body collided only with the wall on the last call of [method move_and_slide]. 
+## Otherwise, returns [code]false[/code]. The [member knee_height] and [member neck_height] are used
+## to determine whether a surface is "wall" or not.
 func is_on_wall_only() -> bool:
 	return _is_on_wall and not (_is_on_ceiling or _is_on_floor)
 
