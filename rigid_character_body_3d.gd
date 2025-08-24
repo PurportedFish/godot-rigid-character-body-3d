@@ -42,13 +42,17 @@ func move_and_slide() -> void:
 	
 	var move_magnitude: float = mass * acceleration_magnitude
 	var move_force: Vector3 = move_magnitude * target_velocity.normalized()
+	var target_speed: float = target_velocity.length()
 	
-	if is_on_floor():
+	if _is_on_floor:
+		if _floor_normal.is_normalized():
+			move_force = move_force.slide(_floor_normal)
 		if not floor_constant_speed and target_velocity.normalized().dot(_floor_normal) < -0.1:
 			move_force *= clampf(_floor_normal.dot(up_direction), -1.0, 1.0)
+			target_speed = target_velocity.slide(_floor_normal).length()
 	
 	var horizontal_velocity: Vector3 = Vector3(linear_velocity.x, 0.0, linear_velocity.z)
-	var drag_scale: float = horizontal_velocity.length() / target_velocity.length()
+	var drag_scale: float = horizontal_velocity.length() / target_speed
 	var drag_force: Vector3 = move_magnitude * drag_scale * -horizontal_velocity.normalized()
 	
 	apply_force(move_force + drag_force)
@@ -108,7 +112,6 @@ func _detect_ceiling_floor_wall() -> void:
 			)
 		):
 			_is_on_ceiling = true
-			# TODO: Add ceiling behavior
 			continue
 		
 		if not floor_stop_on_slope:
@@ -119,4 +122,5 @@ func _detect_ceiling_floor_wall() -> void:
 		
 		if contact_angle <= floor_max_angle or is_equal_approx(contact_angle, floor_max_angle):
 			_is_on_floor = true
-			apply_central_force(-get_gravity().length() * mass * Vector3.DOWN.slide(normal))
+			var normal_force: Vector3 = -get_gravity().length() * mass * Vector3.DOWN.slide(normal)
+			apply_central_force(normal_force)
