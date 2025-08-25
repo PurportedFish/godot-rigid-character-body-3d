@@ -153,9 +153,6 @@ func _detect_ceiling_floor_wall() -> void:
 		var normal: Vector3 = _state.get_contact_local_normal(i)
 		var contact_angle: float = acos(normal.dot(up_direction))
 		
-		if collider is RigidBody3D:
-			continue
-		
 		if (
 			contact_position.y > floor_knee_height 
 			and contact_position.y < neck_height
@@ -175,9 +172,6 @@ func _detect_ceiling_floor_wall() -> void:
 			_is_on_ceiling = true
 			continue
 		
-		if not floor_stop_on_slope:
-			continue
-		
 		if normal.y > _floor_normal.y:
 			_floor_normal = normal
 			if collider is AnimatableBody3D:
@@ -187,6 +181,10 @@ func _detect_ceiling_floor_wall() -> void:
 		
 		if contact_angle <= floor_max_angle or is_equal_approx(contact_angle, floor_max_angle):
 			_is_on_floor = true
+			
+			if not floor_stop_on_slope:
+				continue
+			
 			var normal_force: Vector3 = -get_gravity().length() * mass * Vector3.DOWN.slide(normal)
 			apply_central_force(normal_force)
 	
