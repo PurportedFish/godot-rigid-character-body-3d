@@ -6,6 +6,12 @@ extends RigidBody3D
 ## is moved by calling [method move_and_slide] after setting the [member acceleration_magnitude] 
 ## and [member target_velocity].
 
+enum PlatformOnLeave {
+	ADD_VELOCITY, ## Add the last platform velocity to the [member linear_velocity] when the body leaves a moving platform.
+	ADD_UPWARD_VELOCITY, ## Add the last platform upward velocity to the [member linear_velocity] when the body leaves a moving platform, but any downward motion is ignored.
+	DO_NOTHING ## Do nothing when leaving a moving platform.
+}
+
 ## Vector pointing upwards, used for slope behavior calculations.
 @export var up_direction: Vector3 = Vector3.UP
 ## A vertical position on the body. Collision points above the [member neck_height] is the first
@@ -28,6 +34,13 @@ extends RigidBody3D
 ## The maximum angle of a collision to be considered a floor if the contact position also occurs
 ## below [member knee_height].
 @export_range(0.0, 180, 1.0, "radians_as_degrees") var floor_max_angle: float = deg_to_rad(45.0)
+@export_group("Moving Platform", "platform")
+## If [code]true[/code], the body will move in the same velocity while on top of an [AnimatableBody3D]. [br][br]
+## If [code]false[/code], the body will not be affected while on top of an [AnimatableBody3D].
+@export var platform_move_with_moving_platform: bool = true
+## Sets the behavior to apply when the body leaves a moving platofrm. By default, to be physically accurate,
+## when the body leaves the last platform velocity is applied.
+@export var platform_on_leave: PlatformOnLeave
 
 ## The target velocity (typically in meters per second) that the body tries to reach. Used and modified
 ## during calls to [method move_and_slide].
@@ -41,6 +54,7 @@ var target_velocity: Vector3 = Vector3.ZERO
 ## collisions body objects are [RigidBody3D]s and modify the acceleration accordingly.
 var acceleration_magnitude: float = 10.0
 
+var _initial_parent: Node
 var _state: PhysicsDirectBodyState3D
 var _floor_normal: Vector3 = Vector3.ZERO
 var _is_on_ceiling: bool = false
@@ -49,6 +63,8 @@ var _is_on_wall: bool = false
 
 
 func _ready() -> void:
+	_initial_parent = get_parent()
+	
 	physics_material_override = PhysicsMaterial.new()
 	physics_material_override.friction = 0.0
 	
@@ -82,6 +98,7 @@ func move_and_slide() -> void:
 	var drag_force: Vector3 = move_magnitude * drag_scale * -horizontal_velocity.normalized()
 	
 	apply_force(move_force + drag_force)
+
 
 ## Returns [code]true[/code] if the body collided with the ceiling on the last call of [method move_and_slide]. 
 ## Otherwise, returns [code]false[/code]. The [member neck_height] and [member ceiling_min_angle] are used
@@ -128,10 +145,16 @@ func _detect_ceiling_floor_wall() -> void:
 	_is_on_floor = false
 	_is_on_wall = false
 	
+	var moving_platform: AnimatableBody3D = null
+	
 	for i in _state.get_contact_count():
+		var collider: Object = _state.get_contact_collider_object(i)
 		var contact_position: Vector3 = to_local(_state.get_contact_collider_position(i))
 		var normal: Vector3 = _state.get_contact_local_normal(i)
 		var contact_angle: float = acos(normal.dot(up_direction))
+		
+		if collider is RigidBody3D:
+			continue
 		
 		if (
 			contact_position.y > floor_knee_height 
@@ -157,8 +180,31 @@ func _detect_ceiling_floor_wall() -> void:
 		
 		if normal.y > _floor_normal.y:
 			_floor_normal = normal
+			if collider is AnimatableBody3D:
+				moving_platform = collider
+			else:
+				moving_platform = null
 		
 		if contact_angle <= floor_max_angle or is_equal_approx(contact_angle, floor_max_angle):
 			_is_on_floor = true
 			var normal_force: Vector3 = -get_gravity().length() * mass * Vector3.DOWN.slide(normal)
 			apply_central_force(normal_force)
+	
+	if platform_move_with_moving_platform:
+		if moving_platform:
+			reparent(moving_platform)
+		elif _is_on_floor:
+			reparent(_initial_parent)
+		
+		if get_parent() is AnimatableBody3D:
+			var platform_velocity: Vector3 = PhysicsServer3D.body_get_state(
+					get_parent().get_rid(), PhysicsServer3D.BODY_STATE_LINEAR_VELOCITY)
+			if not _is_on_floor and linear_velocity.dot(platform_velocity) < 0.0:
+				if platform_on_leave == PlatformOnLeave.ADD_VELOCITY:
+					linear_velocity += platform_velocity
+				elif  (
+					platform_on_leave == PlatformOnLeave.ADD_UPWARD_VELOCITY 
+					and platform_velocity.y > 0.0
+				):
+					linear_velocity.y += platform_velocity.y
+				reparent(_initial_parent)

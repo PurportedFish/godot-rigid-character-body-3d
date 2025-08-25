@@ -343,6 +343,26 @@ mesh = SubResource("BoxMesh_uammk")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Structures/Platforms/Platform9"]
 shape = SubResource("ConvexPolygonShape3D_1jbn5")
 
+[node name="Platform10" type="StaticBody3D" parent="Structures/Platforms"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 1.5, -16.5)
+physics_material_override = ExtResource("1_b7flg")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Structures/Platforms/Platform10"]
+mesh = SubResource("BoxMesh_vmrcs")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Structures/Platforms/Platform10"]
+shape = SubResource("ConvexPolygonShape3D_1jbn5")
+
+[node name="Platform11" type="StaticBody3D" parent="Structures/Platforms"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 0.5, -6)
+physics_material_override = ExtResource("1_b7flg")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Structures/Platforms/Platform11"]
+mesh = SubResource("BoxMesh_vmrcs")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Structures/Platforms/Platform11"]
+shape = SubResource("ConvexPolygonShape3D_1jbn5")
+
 [node name="Floor" type="StaticBody3D" parent="Structures"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
 physics_material_override = ExtResource("1_b7flg")
