@@ -1,6 +1,6 @@
 extends RigidCharacterBody3D
 
-
+const ACCELRATION_CURVE: Curve = preload("res://example/acceleration_curve.tres")
 const SPEED: float = 5.0
 const JUMP_HEIGHT: float = 1.1
 
@@ -44,3 +44,20 @@ func _input(event: InputEvent) -> void:
 		apply_central_impulse(mass * velocity * up_direction)
 	else:
 		_wants_to_jump = false
+
+
+func modify_move_force(move_force: Vector3) -> Vector3:
+	var horizontal_velocity: Vector3 = Vector3(linear_velocity.x, 0.0, linear_velocity.z)
+	var x_offset: float = ((horizontal_velocity.x * basis.x)).normalized().dot(
+			(target_velocity.x * basis.x).normalized())
+	var z_offset: float =((horizontal_velocity.z * basis.z)).normalized().dot(
+			(target_velocity.z * basis.z).normalized())
+	
+	if x_offset < 0.0:
+		move_force.x *= ACCELRATION_CURVE.sample(x_offset)
+	if z_offset < 0.0:
+		move_force.z *= ACCELRATION_CURVE.sample(z_offset)
+	
+	print(linear_velocity.length())
+	
+	return move_force

@@ -86,6 +86,8 @@ func move_and_slide() -> void:
 	var move_force: Vector3 = move_magnitude * target_velocity.normalized()
 	var target_speed: float = target_velocity.length()
 	
+	move_force = modify_move_force(move_force)
+	
 	if _is_on_floor:
 		if _floor_normal.is_normalized():
 			move_force = move_force.slide(_floor_normal)
@@ -98,6 +100,12 @@ func move_and_slide() -> void:
 	var drag_force: Vector3 = move_magnitude * drag_scale * -horizontal_velocity.normalized()
 	
 	apply_force(move_force + drag_force)
+
+
+## Override this method to modify the move force before it is applied to the body. [param move_force]
+## is equal to [code]mass * acceleration_magnitude * target_velocity.normalized()[/code]
+func modify_move_force(move_force: Vector3) -> Vector3:
+	return move_force
 
 
 ## Returns [code]true[/code] if the body collided with the ceiling on the last call of [method move_and_slide]. 
