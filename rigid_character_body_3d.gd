@@ -52,7 +52,7 @@ var target_velocity: Vector3 = Vector3.ZERO
 ## If a high acceleration and speed are intended for the body but with alternative collision behavior,
 ## consider modifying [member acceleration_magnitude] in [method _integrate_forces] to detect if any
 ## collisions body objects are [RigidBody3D]s and modify the acceleration accordingly.
-var acceleration_magnitude: float = 10.0
+var acceleration_magnitude: float = 15.0
 
 var _initial_parent: Node
 var _state: PhysicsDirectBodyState3D
